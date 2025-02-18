@@ -4,25 +4,27 @@
 ![](https://img.shields.io/badge/unity-2018.4+-000.svg)
 [![Releases](https://img.shields.io/github/release/hadashiA/VContainer.svg)](https://github.com/hadashiA/VContainer/releases)
 [![openupm](https://img.shields.io/npm/v/jp.hadashikick.vcontainer?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/jp.hadashikick.vcontainer/)
+[![README_CN](https://img.shields.io/badge/VContainer-%E4%B8%AD%E6%96%87%E6%96%87%E6%A1%A3-orange)](https://github.com/NightZed/VContainer/blob/master/README_CN.md)
 
-运行在 Unity 游戏引擎上的超快 DI（依赖注入）库。
+
+专为 Unity 游戏引擎设计的超快DI（依赖注入）库。
 
 "V" 意味着让 Unity 初始的 "U" 更轻量更稳固 ... !
 
-- **快速解析:** 基本比 Zenject 快5-10倍。
-- **最小GC分配:** 解析过程中，在没有生成实例的情况下实现了**零堆内存分配**。
-- **小代码量:** 只有很少的内部类型和 .callvirt。
-- **支持正确的 DI 方式:** 提供简单透明的 API，并仔细选择功能，防止 DI 声明变得过于复杂。
+- **极速解析:** 基础性能比 Zenject 快5-10倍。
+- **零GC分配:** 解析过程中（除实例生成外）完全实现了**零内存分配**。
+- **精简代码:** 少量内部类型与 .callvirt 调用。
+- **规范 DI 实践:** 提供简单透明的 API，谨慎选择功能特性，防止 DI 声明过度复杂化。
 - **不可变容器:** 线程安全和健壮性。
 
-## 特征
+## 核心功能
 
 - 构造函数注入 / 方法注入 / 属性和字段注入
-- 调度自己的 PlayerLoopSystem
-- 灵活的作用域
-  - 应用程序可自由创建嵌套的生命周期作用域 (Lifetime Scope)，可根据自己的喜好使用任何异步。
-- 使用 SourceGenerator 的加速模式（可选）
-- 为 Unity 提供编辑器中的诊断 (Diagnositcs) 窗口
+- 自管理 PlayerLoopSystem 调度
+- 灵活作用域控制
+  - 可自由创建嵌套的生命周期作用域 (Lifetime Scope)，支持异步。
+- 基于源码生成器 SourceGenerator 的加速模式（可选）
+- Unity编辑器诊断 (Diagnositcs) 窗口
 - 集成 UniTask
 - 集成 ECS *beta*
 
@@ -30,7 +32,7 @@
 
 访问 [vcontainer.hadashikick.jp](https://vcontainer.hadashikick.jp) 阅读完整文档
 
-## 性能
+## 性能表现
 
 ![](./website/static/img/benchmark_result.png)
 
@@ -42,23 +44,23 @@
 
 ![](./website/static/img/screenshot_profiler_zenject.png)
 
-## 安装
+## 安装指南
 
 *要求 Unity 2018.4+*
 
 ### 通过 UPM 安装 (使用 Git 链接)
 
-1. 导航到项目的 Packages 文件夹并打开 manifest.json 文件。
+1. 打开项目 Packages 文件夹下的 manifest.json 文件。
 2. 在 "dependencies": { 行下添加以下内容：
     - ```json title="Packages/manifest.json"
-      "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.16.6",
+      "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.16.8",
       ```
-3. UPM 现在应该会安装此包。
+3. UPM 将自动安装该包。
 
 ### 通过 OpenUPM 安装
 
 
-1. [openupm registry](https://openupm.com) 上支持此包。 推荐通过 [openupm-cli](https://github.com/openupm/openupm-cli) 进行安装。
+1. 该包已发布于 [openupm registry](https://openupm.com) 。 推荐通过 [openupm-cli](https://github.com/openupm/openupm-cli) 进行安装。
 2. 执行以下 openum 命令：.
     - ```
       openupm add jp.hadashikick.vcontainer
@@ -67,11 +69,11 @@
 ### 手动安装（使用.unitypackage）
 
 1. 从 [releases](https://github.com/hadashiA/VContainer/releases) 页面下载 .unitypackage 。
-2. 打开 VContainer.x.x.x.unitypackage
+2. 导入 VContainer.x.x.x.unitypackage
 
 ## 基础用法
 
-首先，创建一个作用域。这里注册的类型会被自动解析引用。
+首先创建作用域，在此注册的类型会自动完成依赖解析：
 
 ```csharp
 public class GameLifetimeScope : LifetimeScope
@@ -88,7 +90,7 @@ public class GameLifetimeScope : LifetimeScope
 }
 ```
 
-类的定义如下：
+相关类定义：
 
 ```csharp
 public interface IRouteSearch
@@ -109,14 +111,14 @@ public class CharacterService
     }
 }
 ```
-
+视图组件：
 ```csharp
 public class ActorsView : MonoBehaviour
 {
 }
 ```
 
-以及：
+以及入口类：
 
 ```csharp
 public class ActorPresenter : IStartable
@@ -134,25 +136,25 @@ public class ActorPresenter : IStartable
 
     void IStartable.Start()
     {
-        // 在 VContainer 自己的 PlayerLoopSystem 上调度 Start()
+        // 通过 VContainer PlayerLoopSystem 调度 Start()
     }
 }
 ```
 
 
-- 在这个例子中，当解析 CharacterService 时，CharacterService 的 routeSearch 会被自动设置为 AStarRouteSearch 的实例。
-- 此外，VContainer 可以将纯 C# 类作为入口点（可以指定各种事件函数，如 Start、Update 等）。这有助于实现“逻辑领域和表现层的分离”。
+- 示例中，当解析 CharacterService 时，CharacterService 的 routeSearch 会自动解析为 AStarRouteSearch 实例。
+- VContainer 支持纯 C# 类作为入口点（可指定 Start/Update 等生命周期），实现"业务逻辑与表现层分离"。
 
 ### 使用异步 (async) 的灵活作用域
 
-生命周期作用域可以动态创建子作用域。这允许你处理游戏中经常发生的异步资源加载。
+LifetimeScope 支持动态创建子作用域，轻松应对游戏中的异步资源加载：
 
 ```csharp
 public void LoadLevel()
 {
-    // ... 加载一些资源
+    // ... 加载资源
 
-    // 创建一个子作用域
+    // 创建子作用域
     instantScope = currentScope.CreateChild();
 
     // 使用 LifetimeScope 预制件创建子作用域
@@ -180,7 +182,7 @@ public void UnloadLevel()
 }
 ```
 
-此外，你可以在附加场景中使用 LifetimeScope 创建父子关系。
+在附加场景中建立 LifetimeScope 父子关系：
 
 ```csharp
 class SceneLoader
@@ -251,13 +253,13 @@ builder.RegisterEntryPoint<FooController>();
 
 查看 [integrations](https://vcontainer.hadashikick.jp/integrations/unitask) 获取更多信息。
 
-## Diagnositcs 窗口
+## Diagnositcs 诊断窗口
 
 ![](./website/static/img/screenshot_diagnostics_window.png)
 
 查看 [diagnostics](https://vcontainer.hadashikick.jp/diagnostics/diagnostics-window) 获得更多信息。
 
-## Credits
+## 致谢
 
 VContainer 灵感来源:
 
@@ -269,6 +271,6 @@ VContainer 灵感来源:
 
 [@hadashiA](https://twitter.com/hadashiA)
 
-## License
+## 许可协议
 
 MIT
